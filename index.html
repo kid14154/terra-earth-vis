@@ -246,7 +246,7 @@ const Store=(()=>{
 /* ═══════════════ TEXTURE LOADING ═══════════════ */
 function loadTex(urls,fb){
   return new Promise(res=>{
-    let done=false;
+    let done=false,failed=0;
     const to=setTimeout(()=>{if(!done){done=true;console.warn('[Terra] tex timeout',urls[0]);res(fb())}},60000);
     urls.forEach(u=>{
       const l=new THREE.TextureLoader();
@@ -254,7 +254,10 @@ function loadTex(urls,fb){
         if(done)return;done=true;clearTimeout(to);
         t.anisotropy=S.renderer?S.renderer.capabilities.getMaxAnisotropy():1;
         t.encoding=THREE.sRGBEncoding;res(t);
-      },undefined,()=>{});
+      },undefined,(err)=>{
+        failed++;console.warn('[Terra] tex fail',u,err);
+        if(failed>=urls.length&&!done){done=true;clearTimeout(to);res(fb())}
+      });
     });
   });
 }
